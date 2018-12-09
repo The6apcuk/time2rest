@@ -36,13 +36,6 @@ class ViewEndpoints(ViewBase):
     def __str__(self):
         return  self.__class__.__name__
 
-    @QtCore.pyqtSlot(object)
-    def on_table_edit(self, item):
-        column = item.column()
-        row = item.row()
-        data = item.data(0)
-        self.model.update(row, column, data)
-
     def configure(self):
         central_widget = self.main_window_configuration(self.main_window_size, self.main_window_name)
         self.table = self.create_table(names=self.table_names, parent=central_widget)

@@ -3,7 +3,7 @@ from view_base import ViewBase
 from model import Request
 
 
-class ViewRequests(ViewBase,):
+class ViewRequests(ViewBase):
     def __init__(self, main_window,  show_window, requests, ep_model):
         super().__init__(self)
         self.model = requests
@@ -14,6 +14,8 @@ class ViewRequests(ViewBase,):
         self.main_window_size = 1000, 258
         self.tables = None
         self.ep_model.added.connect(self.on_endpoint_added)
+        self.ep_model.updated.connect(self.on_endpoint_updated)
+        self.ep_model.deleted.connect(self.on_endpoint_deleted)
 
         self.main_window_name = 'Requests'
 
@@ -62,6 +64,38 @@ class ViewRequests(ViewBase,):
             combo_box = self.table.cellWidget(row, 0)
             combo_box.addItem(endpoint.uri)
 
+    @QtCore.pyqtSlot(object)
+    def on_endpoint_updated(self, data):
+
+        for row in range(self.table.rowCount()):
+            combo_box = self.table.cellWidget(row, 0)
+            combo_box.setItemText(data['row'], data['value'])
+
+    @QtCore.pyqtSlot(object)
+    def on_endpoint_deleted(self, number):
+
+        for row in range(self.table.rowCount()):
+            combo_box = self.table.cellWidget(row, 0)
+            index = combo_box.currentIndex()
+            if index == number:
+                combo_box.setCurrentIndex(-1)
+            combo_box.removeItem(number)
+
+    def add_row(self):
+        row_pos = self.table.rowCount()
+        column_num = self.table.columnCount()
+
+        #  Create blank data for Database
+        blank_data = ['' for _ in range(column_num - 1)]
+        combo_box = self.create_combobox(self.table, row_pos, column_num)
+
+
+        # Add row and fill it
+        self.table.insertRow(row_pos)
+        self.table.setCellWidget(row_pos, 0, combo_box)
+
+        self.model.add(self.model_element(* [combo_box.currentIndex()] + blank_data))
+
     def table_field_configure(self, table_widget, names):
         for column in range(0, len(self.model.item.index_to_key_map.keys())):
             table_widget.setHorizontalHeaderItem(column, QtWidgets.QTableWidgetItem(names['columns'][column]))
@@ -69,14 +103,10 @@ class ViewRequests(ViewBase,):
             for row in range(0, len(self.model)):
 
                 if column == 0:
-                    combo_box = QtWidgets.QComboBox()
+                    combo_box = self.create_combobox(table_widget, row, 0)
                     table_widget.setCellWidget(row, column, combo_box)
-
-                    for endpoint in self.ep_model:
-                        combo_box.addItem(endpoint.uri)
                     dropdown_index = self.model[row][column]
                     combo_box.setCurrentIndex(int(dropdown_index) if dropdown_index else 0)
-                    combo_box.currentIndexChanged.connect(lambda x, row_=row: self.model.update(row_, 0, x)) # self.combobox_saver
 
                 else:
                     cell_data = self.model[row][column]
@@ -86,6 +116,14 @@ class ViewRequests(ViewBase,):
         table_widget.verticalHeader().hide()
         # table_widget.setSortingEnabled(False)
         return table_widget
+
+    def create_combobox(self, table_widget, row, column):
+        combo_box = QtWidgets.QComboBox()
+
+        for endpoint in self.ep_model:
+            combo_box.addItem(endpoint.uri)
+        combo_box.currentIndexChanged.connect(lambda x, row_=row: self.model.update(row_, 0, x))  # self.combobox_saver
+        return combo_box
 
     def combobox_saver(self, index):
         row = self.table.currentRow()

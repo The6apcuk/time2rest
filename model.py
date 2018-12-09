@@ -93,16 +93,29 @@ class Request(ItemModel):
 class Endpoints(CollectionModel):
     item = Endpoint
     name = 'Endpoints'
+
     added = QtCore.pyqtSignal(object)
-
-    # def add(self, request):
-    #     super().add(request)
-    #     # noinspection PyUnresolvedReferences
-    #     self.added.emit(request)
-
+    deleted = QtCore.pyqtSignal(object)
+    updated = QtCore.pyqtSignal(object)
 
     def __init__(self, dtb):
         super().__init__(dtb)
+
+
+    def add(self, request):
+        super().add(request)
+        self.added.emit(request)
+
+    def delete(self, num):
+        super().delete(num)
+        self.deleted.emit(num)
+
+    def update(self, row, column, value):
+        super().update(row, column, value)
+        if column == 0:
+            self.updated.emit({'row': row, 'value': value})
+
+
 
 
 class Requests(CollectionModel):
