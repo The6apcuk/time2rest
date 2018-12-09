@@ -29,9 +29,11 @@ class CollectionModel(QtCore.QObject):
             self.add(request)
 
     def delete(self, num):
+        if num == -1:
+            print('doing nothing')
+            return
         self.collection.pop(num)
         self.dtb.write(self.collection, self.name)
-        print(self.collection)
 
     def update(self, row, column, value):
         self.collection[row].update(column, value)

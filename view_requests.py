@@ -87,7 +87,7 @@ class ViewRequests(ViewBase):
 
         #  Create blank data for Database
         blank_data = ['' for _ in range(column_num - 1)]
-        combo_box = self.create_combobox(self.table, row_pos, column_num)
+        combo_box = self.create_combobox(row_pos)
 
 
         # Add row and fill it
@@ -103,10 +103,10 @@ class ViewRequests(ViewBase):
             for row in range(0, len(self.model)):
 
                 if column == 0:
-                    combo_box = self.create_combobox(table_widget, row, 0)
-                    table_widget.setCellWidget(row, column, combo_box)
                     dropdown_index = self.model[row][column]
-                    combo_box.setCurrentIndex(int(dropdown_index) if dropdown_index else 0)
+                    combobox_index = int(dropdown_index) if str(dropdown_index) else -1
+                    combo_box = self.create_combobox(row, combobox_index)
+                    table_widget.setCellWidget(row, column, combo_box)
 
                 else:
                     cell_data = self.model[row][column]
@@ -117,12 +117,15 @@ class ViewRequests(ViewBase):
         # table_widget.setSortingEnabled(False)
         return table_widget
 
-    def create_combobox(self, table_widget, row, column):
+    def create_combobox(self, row, index=-1):
         combo_box = QtWidgets.QComboBox()
 
         for endpoint in self.ep_model:
             combo_box.addItem(endpoint.uri)
-        combo_box.currentIndexChanged.connect(lambda x, row_=row: self.model.update(row_, 0, x))  # self.combobox_saver
+        combo_box.setCurrentIndex(index)
+        combo_box.currentIndexChanged.connect(lambda data, row_=row: self.model.update(row_, 0, data))
+
+
         return combo_box
 
     def combobox_saver(self, index):
