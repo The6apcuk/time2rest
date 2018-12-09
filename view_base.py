@@ -4,23 +4,24 @@ from PyQt5 import QtCore, QtWidgets, Qt
 class ViewBase(QtCore.QObject):
     def __init__(self, main_window):
         super().__init__()
-        self.main_window = main_window
+        self.window = main_window
         self.saver_data = list()
         self.dbs_name = str(self)
 
-    def main_window_configuration(self, size, name):
-        self.main_window.setObjectName("MainWindow")
-        self.main_window.resize(*size)
-        self.main_window.setStyleSheet("")
-        self.main_window.setWindowTitle(name)
-        centralwidget = QtWidgets.QWidget(self.main_window)
-        centralwidget.setObjectName("centralwidget")
-        if type(self.main_window) == QtWidgets.QMainWindow:
-            self.main_window.setCentralWidget(centralwidget)
-            return centralwidget
-        return self.main_window
+    def window_configuration(self, window, size, name):
+        window.setObjectName("MainWindow")
+        window.resize(*size)
+        window.setStyleSheet("")
+        window.setWindowTitle(name)
+        return window
 
-    def create_main_window_menu(self, menu_structure, parent):
+    def initialize_central_widget(self, window):
+        centralwidget = QtWidgets.QWidget(window)
+        centralwidget.setObjectName("centralwidget")
+        self.window.setCentralWidget(centralwidget)
+        return centralwidget
+
+    def create_window_menu(self, menu_structure, parent):
         menuBar = QtWidgets.QMenuBar(parent)
         menuBar.setGeometry(QtCore.QRect(0, 0, 411, 25))
         menuBar.setObjectName("menuBar")
@@ -43,7 +44,7 @@ class ViewBase(QtCore.QObject):
             yield menu, menu_actions
 
     def add_submenu_items(self, submenu_name, func):
-        action = QtWidgets.QAction(self.main_window)
+        action = QtWidgets.QAction(self.window)
         action.setText(submenu_name)
         action.setObjectName("action{}".format(submenu_name))
         # noinspection PyUnresolvedReferences
@@ -56,7 +57,6 @@ class ViewBase(QtCore.QObject):
         table_widget = QtWidgets.QTableWidget(rows, columns, parent)
         table_widget.setObjectName(names['table_name'])
         table = self.table_field_configure(table_widget, names)
-        # noinspection PyUnresolvedReferences
         table_widget.itemChanged.connect(self.table_saver)
         return table
 
@@ -75,7 +75,7 @@ class ViewBase(QtCore.QObject):
 
         # Add row and fill it
         self.table.insertRow(row_pos)
-        self.model.add(self.model_element(*blank_data))
+        self.model.add(self.model.item(*blank_data))
 
     def delete_selected_row(self):
         cur_row = self.table.currentRow()
@@ -111,6 +111,15 @@ class ViewBase(QtCore.QObject):
             # noinspection PyUnresolvedReferences
             button.clicked.connect(func)
             yield button
+
+    # @staticmethod
+    def create_combobox(self, names, parent, index=-1):
+        for name, func in names.items():
+            combo_box = QtWidgets.QComboBox(parent)
+            combo_box.setObjectName("combobox_{}".format(name))
+            combo_box.setCurrentIndex(index)
+            combo_box.currentIndexChanged.connect(func)
+            yield combo_box
 
     @staticmethod
     def modal_func(func):

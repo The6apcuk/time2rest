@@ -4,15 +4,16 @@ from model import Endpoint
 
 
 class ViewEndpoints(ViewBase):
-    def __init__(self, main_window, eps):
+    def __init__(self, ep_window, eps):
         super().__init__(self)
-        self.model = eps
-        self.model_element = Endpoint
-        self.main_window = main_window
-        self.tables = None
-        self.main_window_size = 1000, 258
 
-        self.main_window_name = 'End points'
+        self.window = ep_window
+        self.window_size = 1000, 258
+        self.window_name = 'Endpoints'
+
+        self.model = eps
+
+        self.tables = None
 
         self.table_names = {'table_name': 'Requests',
                             'rows': ['URI {}'.format(num) for num in range(10)],
@@ -24,7 +25,7 @@ class ViewEndpoints(ViewBase):
                                             'button_apply':  (1, 2, 1, 1),
                                             },
                                 }
-        self.button_names = {'apply': self.main_window.close,
+        self.button_names = {'apply': self.window.close,
                              'add': self.add_row,
                              'delete': self.delete_selected_row,
                              }
@@ -37,11 +38,27 @@ class ViewEndpoints(ViewBase):
         return  self.__class__.__name__
 
     def configure(self):
-        central_widget = self.main_window_configuration(self.main_window_size, self.main_window_name)
-        self.table = self.create_table(names=self.table_names, parent=central_widget)
-        buttons = self.buttons_create(self.button_names, parent=central_widget)
-        grid_1 = self.grids_create([self.grid_names[0]], parent=central_widget)
+        window = self.window_configuration(self.window, self.window_size, self.window_name)
+        self.table = self.create_table(names=self.table_names, parent=window)
+        buttons = self.buttons_create(self.button_names, parent=window)
+        grid_1 = self.grids_create([self.grid_names[0]], parent=window)
         self.grids_configure(grid=grid_1, widget_config=self.widget_config_1,
                              tables=[self.table], buttons=buttons)
-        QtCore.QMetaObject.connectSlotsByName(self.main_window)
+        QtCore.QMetaObject.connectSlotsByName(window)
+
+if __name__ == "__main__":
+    from model import Endpoints
+    class TestDtb:
+        def __init__(self,*data):
+            ...
+        def read(self, *data):
+            return ''
+
+        def write(self, *data):
+            ...
+    app = QtWidgets.QApplication([])
+    dialog = QtWidgets.QDialog()
+    endpoint_view = ViewEndpoints(dialog, Endpoints(TestDtb('ololo', 'trololo')))
+    dialog.show()
+    app.exec_()
 

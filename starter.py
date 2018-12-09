@@ -26,4 +26,4 @@ requests_view = ViewRequests(main_window, dialog, requests, eps)
 main_window.show()
 
 # Execute application
-app.exec_()
+sys.exit(app.exec_())
