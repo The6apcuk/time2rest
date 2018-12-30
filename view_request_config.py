@@ -17,19 +17,25 @@ class ViewRequestConfig(ViewBase):
         self.bodies_table = None
 
         self.headers_table_name = {'table_name': 'Headers',
-                                   'columns': ['Name', 'Value']}
+                                   'columns': ['Header name', 'Header value']}
 
         self.bodies_table_name = {'table_name': 'Bodies',
-                                  'columns': ['Name', 'Value']}
+                                  'columns': ['Body name', 'Body value']}
 
-        self.widget_config_1 = {'combobox': {'combobox_endpoints':    (0, 0, 1, 1),},
-                                'tables':  {'Headers':       (1, 0, 1, 1),
-                                            'Bodies':        (2, 0, 1, 1)},
-                                'buttons': {'button_apply':  (3, 0, 1, 1),},
+        self.widget_config_1 = {'combobox': {'combobox_endpoints': (0, 0, 1, 3),},
+                                'tables':  {'Headers':             (1, 0, 1, 3),
+                                            'Bodies':              (2, 0, 1, 3)},
+                                'buttons': {'button_add':          (3, 0, 1, 1),
+                                            'button_delete':       (3, 1, 1, 1),
+                                            'button_apply':        (3, 2, 1, 1),
+                                            },
 
                                 }
 
-        self.button_names = {'apply': self.window.close}
+        self.button_names = {'apply': self.window.close,
+                             'add': self.add_row,
+                             'delete': self.delete_selected_row}
+
 
         self.combobox_names = {'endpoints': lambda: print('Endpoint selected')}
 
