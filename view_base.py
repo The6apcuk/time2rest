@@ -134,6 +134,21 @@ class ViewBase(QtCore.QObject):
             checkbox.setText(name.capitalize())
             yield checkbox
 
+
+    @staticmethod
+    def create_tabbed_window(names, parent):
+        layout = QtWidgets.QVBoxLayout(parent)
+
+        tabs = QtWidgets.QTabWidget()
+        tab1 = QtWidgets.QWidget()
+        tab2 = QtWidgets.QWidget()
+        tabs.resize(300, 200)
+        for name in names:
+            tabs.addTab(exec(name),name)
+
+        layout.addWidget(tabs)
+        return layout
+
     @staticmethod
     def grids_create(names, parent):
         for name in names:

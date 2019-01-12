@@ -56,7 +56,7 @@ class ViewRequests(ViewBase):
         self.configure()
 
     def __str__(self):
-        return  self.__class__.__name__
+        return self.__class__.__name__
 
     @QtCore.pyqtSlot(object)
     def on_endpoint_added(self, endpoint):
@@ -100,8 +100,6 @@ class ViewRequests(ViewBase):
             combo_box.addItem(endpoint.uri)
         combo_box.setCurrentIndex(index)
         combo_box.currentIndexChanged.connect(lambda data, row_=row: self.model.update(row_, 0, data))
-
-
         return combo_box
 
     def combobox_saver(self, index):
