@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1">
+    <item row="2" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
        <number>0</number>
@@ -67,20 +67,6 @@
           </column>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="button_add_request">
-          <property name="text">
-           <string>Add</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="button_edit_request">
-          <property name="text">
-           <string>Edit</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="2">
          <widget class="QPushButton" name="button_delete_request">
           <property name="text">
@@ -95,26 +81,40 @@
           </property>
          </widget>
         </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="button_edit_request">
+          <property name="text">
+           <string>Edit</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="button_add_request">
+          <property name="text">
+           <string>Add</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="config">
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QLabel" name="label_request_name">
+         <widget class="QLabel" name="label_request_name_config">
           <property name="text">
            <string>Request name</string>
           </property>
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_template">
+         <widget class="QLabel" name="label_uri_config">
           <property name="text">
            <string>Select template</string>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="comboBox_request"/>
+         <widget class="QComboBox" name="comboBox_config"/>
         </item>
         <item row="2" column="0" colspan="2">
          <widget class="QTableWidget" name="tableWidget_header_config">
@@ -162,16 +162,16 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <layout class="QGridLayout" name="gridLayout_header_table">
+         <layout class="QGridLayout" name="gridLayout_header_table_config">
           <item row="2" column="0" alignment="Qt::AlignTop">
-           <widget class="QPushButton" name="button_header_delete">
+           <widget class="QPushButton" name="button_header_delete_config">
             <property name="text">
              <string>-</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0" alignment="Qt::AlignBottom">
-           <widget class="QPushButton" name="button_header_add">
+           <widget class="QPushButton" name="button_header_add_config">
             <property name="text">
              <string>+</string>
             </property>
@@ -225,16 +225,16 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <layout class="QGridLayout" name="gridLayout_body_table">
+         <layout class="QGridLayout" name="gridLayout_body_table_config">
           <item row="2" column="0" alignment="Qt::AlignTop">
-           <widget class="QPushButton" name="button_body_delete">
+           <widget class="QPushButton" name="button_body_delete_config">
             <property name="text">
              <string>-</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0" alignment="Qt::AlignBottom">
-           <widget class="QPushButton" name="button_body_add">
+           <widget class="QPushButton" name="button_body_add_config">
             <property name="text">
              <string>+</string>
             </property>
@@ -243,10 +243,97 @@
          </layout>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_request_name"/>
+         <widget class="QLineEdit" name="lineEdit_request_name_config"/>
         </item>
         <item row="4" column="0" colspan="2">
          <widget class="QPushButton" name="button_apply_config">
+          <property name="text">
+           <string>Apply</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QPushButton" name="button_cancel_config">
+          <property name="text">
+           <string>Cancel</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="uri">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0" colspan="3">
+         <widget class="QTableWidget" name="tableWidget_uri">
+          <property name="rowCount">
+           <number>3</number>
+          </property>
+          <property name="columnCount">
+           <number>3</number>
+          </property>
+          <attribute name="horizontalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+          <row>
+           <property name="text">
+            <string>New Row</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>New Row</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>New Row</string>
+           </property>
+          </row>
+          <column>
+           <property name="text">
+            <string>URI</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Header names</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Bodies names</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="button_add_uri">
+          <property name="text">
+           <string>Add</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="button_delete_uri">
+          <property name="text">
+           <string>Delete</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="button_apply_uri">
           <property name="text">
            <string>Apply</string>
           </property>
