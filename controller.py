@@ -14,8 +14,9 @@ class Controller:
         self.main_window = QtWidgets.QMainWindow()
         self.window = Ui_MainWindow()
 
-        self.requests = requests
-        self.eps = eps
+        self.models = {}
+        self.models['requests'] = requests
+        self.models['eps'] = eps
 
         self.window.setupUi(self.main_window)
         self.config_tables = self.window.tableWidget_header_config, self.window.tableWidget_body_config
@@ -25,14 +26,14 @@ class Controller:
     @staticmethod
     def add_row( table, model):
         row_pos = table.rowCount()
-        column_num = table.columnCount()
-
-        #  Create blank data for Database
-        blank_data = ('' for _ in range(column_num))
+        # column_num = table.columnCount()
 
         # Add row and fill it
         table.insertRow(row_pos)
-        model.add(model.item(*blank_data))
+
+        #  Create blank data for Database
+        # blank_data = ('' for _ in range(column_num))
+        # model.add(model.item(*blank_data))
 
     @staticmethod
     def del_row(table, model):
@@ -70,41 +71,85 @@ class Controller:
 
         self.window.stackedWidget.setCurrentWidget(self.window.request)
 
+    def blank_cells_to_red_cells(self, row, column, item, table):
+        # if no item, create an item
+        if not item:
+            item = QtWidgets.QTableWidgetItem()
+            table.setItem(row, column, item)
 
-    def test_filled_tables(self, *tables):
+        # if the cell is blank or is not read, fill with red
+        if not (item.text() and item.background().color().red()):
+            table.item(row, column).setBackground(QtGui.QColor(*Colors.red))
+            return row, column
+
+    def check_cells(self, table, columns, rows, handler):
+        result_items = []
+        for column in range(columns):
+            for row in range(rows):
+                item = table.item(row, column)
+                res = handler(row, column, item, table)
+                if res:
+                    result_items.append(res)
+        return result_items
+
+    def handle_tables(self, *tables, handler):
+        table_result = {}
         for table in tables:
             rows = table.rowCount()
             columns = table.columnCount()
-            failed_items = []
-            for column in range(columns):
-                for row in range(rows):
-                    item = table.item(row, column)
-                    if not (item and item.text()) or item.background().color().getRgb() == Colors.red:
-                        table.setItem(row, column, QtWidgets.QTableWidgetItem())
-                        table.item(row, column).setBackground(QtGui.QColor(*Colors.red))
-                        failed_items += (row, column)
-
-        return False if failed_items else True
+            action_result = self.check_cells(table, columns, rows, handler)
+            if action_result:
+                table_result[table] = action_result
+        return action_result
 
     def button_apply_config_action(self, *x):
-        result = self.test_filled_tables(*self.config_tables)
+        result = self.handle_tables(*self.config_tables, handler=self.blank_cells_to_red_cells)
 
         # self.add_row(self.window.tableWidget_request, self.requests)
-        #get info
         if result:
             self.clear_config_tables_content(*self.config_tables)
             self.window.stackedWidget.setCurrentWidget(self.window.request)
 
-    def table_update(self, item, model):
-        column = item.column()
-        row = item.row()
-        data = item.data(0)
-        model.update(row, column, data)
+    def table_update(self, item):
+        # column = item.column()
+        # row = item.row()
+        # data = item.data(0)
+        # model.update(row, column, data)
 
-        if hasattr(item, 'background'):
+        if hasattr(item, 'text') and item.text() and item.background().color().red():
             item.setBackground(QtGui.QColor(*Colors.white))
 
+    def read_cell(self, row, column, item, table):
+        # if no item, create an item
+        if not item:
+            item = QtWidgets.QTableWidgetItem()
+            table.setItem(row, column, item)
+        return row, column, item.text()
 
+    @staticmethod
+    def convert_cell2model_data(cell_data):
+        model_data = {key: dict() for key in set(cell[0] for cell in cell_data)}
+        for cell in cell_data:
+            ep_index = cell[0]
+            ep_properties = cell[1]
+            ep_data = cell[2]
+            column_names = ['uri', 'header_names', 'body_names']
+
+            ep_named_properties = column_names[ep_properties]
+
+            model_data[ep_index][ep_named_properties] = ep_data
+        return model_data
+
+    def button_apply_uri_action(self):
+        cell_data = self.handle_tables(self.window.tableWidget_uri, handler=self.read_cell)
+        model_data = self.convert_cell2model_data(cell_data)
+        for req_index, element in sorted(model_data.items(),key=lambda x:x[0] ):
+            self.models['eps'].add(Endpoints.item(**element))
+
+
+
+
+        self.window.stackedWidget.setCurrentWidget(self.window.request)
 
 
     def configure_callbacks(self, window):
@@ -126,15 +171,16 @@ class Controller:
         window.button_apply_config.clicked.connect(self.button_apply_config_action)
         window.button_cancel_config.clicked.connect(lambda *x: self.clear_config_tables_content(*self.config_tables))
 
-        window.tableWidget_header_config.itemChanged.connect(lambda item: self.table_update(window.tableWidget_header_config, item))
-        window.tableWidget_body_config.itemChanged.connect(lambda item: self.table_update(window.tableWidget_body_config,item))
+        window.tableWidget_header_config.itemChanged.connect(lambda item: self.table_update(item))#window.tableWidget_header_config
+        window.tableWidget_body_config.itemChanged.connect(lambda item: self.table_update(item))#window.tableWidget_body_config
 
         # uri window
         window.button_add_uri.clicked.connect(lambda *x: self.add_row(window.tableWidget_uri, eps))
         window.button_delete_uri.clicked.connect(lambda *x: self.del_row(window.tableWidget_uri, 'ep'))
-        window.button_apply_uri.clicked.connect(lambda *x: window.stackedWidget.setCurrentWidget(window.request))
+        window.button_apply_uri.clicked.connect(self.button_apply_uri_action)
 
-        window.tableWidget_uri.itemChanged.connect(lambda item: self.table_update(item, self.eps))
+        # window.tableWidget_uri.itemChanged.connect(lambda item: self.table_update(item, self.eps))
+
 
     def start_app(self):
         self.main_window.show()
