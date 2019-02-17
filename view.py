@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -137,7 +138,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4 = QtWidgets.QGridLayout(self.uri)
         self.gridLayout_4.setObjectName("gridLayout_4")
         self.tableWidget_uri = QtWidgets.QTableWidget(self.uri)
-        self.tableWidget_uri.setRowCount(3)
+        self.tableWidget_uri.setRowCount(0)
         self.tableWidget_uri.setColumnCount(3)
         self.tableWidget_uri.setObjectName("tableWidget_uri")
         item = QtWidgets.QTableWidgetItem()
@@ -152,7 +153,7 @@ class Ui_MainWindow(object):
         self.tableWidget_uri.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget_uri.setHorizontalHeaderItem(2, item)
-        self.tableWidget_uri.horizontalHeader().setVisible(False)
+        self.tableWidget_uri.horizontalHeader().setVisible(True)
         self.tableWidget_uri.horizontalHeader().setCascadingSectionResizes(False)
         self.tableWidget_uri.horizontalHeader().setStretchLastSection(True)
         self.tableWidget_uri.verticalHeader().setVisible(False)
@@ -234,12 +235,12 @@ class Ui_MainWindow(object):
         self.button_body_add_config.setText(_translate("MainWindow", "+"))
         self.button_apply_config.setText(_translate("MainWindow", "Apply"))
         self.button_cancel_config.setText(_translate("MainWindow", "Cancel"))
-        item = self.tableWidget_uri.verticalHeaderItem(0)
-        item.setText(_translate("MainWindow", "New Row"))
-        item = self.tableWidget_uri.verticalHeaderItem(1)
-        item.setText(_translate("MainWindow", "New Row"))
-        item = self.tableWidget_uri.verticalHeaderItem(2)
-        item.setText(_translate("MainWindow", "New Row"))
+        # item = self.tableWidget_uri.verticalHeaderItem(0)
+        # item.setText(_translate("MainWindow", "New Row"))
+        # item = self.tableWidget_uri.verticalHeaderItem(1)
+        # item.setText(_translate("MainWindow", "New Row"))
+        # item = self.tableWidget_uri.verticalHeaderItem(2)
+        # item.setText(_translate("MainWindow", "New Row"))
         item = self.tableWidget_uri.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "URI"))
         item = self.tableWidget_uri.horizontalHeaderItem(1)
@@ -253,4 +254,3 @@ class Ui_MainWindow(object):
         self.actionEdit_URI.setText(_translate("MainWindow", "Edit URI"))
         self.actionShow_Log.setText(_translate("MainWindow", "Show Log"))
         self.actionQuit.setText(_translate("MainWindow", "Quit"))
-
