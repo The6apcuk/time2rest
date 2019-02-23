@@ -17,7 +17,6 @@ class CollectionModel(QtCore.QObject):
     def __getitem__(self, item):
             return self.collection[item]
 
-
     def __str__(self):
         return self.__class__.__name__
 
@@ -40,6 +39,10 @@ class CollectionModel(QtCore.QObject):
     def update(self, row, element):
         self.collection[row].update(**element)
         self.dtb.update(self.name, row, self.collection[row])
+
+    def flush(self):
+        for element in self.collection[:]:
+            self.delete(0)
 
 
 class ItemModel:

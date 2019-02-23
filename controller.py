@@ -15,18 +15,16 @@ class Controller:
         self.app = QtWidgets.QApplication([])
         self.main_window = QtWidgets.QMainWindow()
         self.window = Ui_MainWindow()
-
-        self.models = {}
-        self.models['requests'] = requests
-        self.models['eps'] = eps
+        self.models = {'requests': requests,
+                       'eps': eps}
         self.table_names_to_model_mapping = {"header_config": '',
                                              "body_config": '',
                                              "uri": self.models['eps'],
                                              "request": self.models['requests']}
 
         self.window.setupUi(self.main_window)
-        self.fill_tables_from_model()
         self.config_tables = self.window.tableWidget_header_config, self.window.tableWidget_body_config
+        # self.fill_tables_from_model()
         self.configure_callbacks(self.window)
         self.start_app()
 
@@ -45,12 +43,10 @@ class Controller:
         # model.delete(cur_row)
 
     def fill_tables_from_model(self):
-        print(Requests)
         model_data = self.models['eps']
         for row, ep in enumerate(model_data):
             self.add_row(table=self.window.tableWidget_uri, row_pos=row)
             self.fill_table_rows(self.window.tableWidget_uri, row, ep)
-            # self.window.tableWidget_uri.
 
     def fill_table_rows(self, table, row, data):
         for column, element in enumerate(data):
@@ -79,10 +75,11 @@ class Controller:
     def clear_tables_content(self, *tables):
         for table in tables:
             # table.clearContents()
-            rows = table.rowCount()
-            columns = table.columnCount()
-            for row in range(rows):
-                table.removeRow(row)
+            # rows = table.rowCount()
+            # columns = table.columnCount()
+            table.setRowCount(0)
+            # for row in range(rows):
+            #     table.removeRow(row)
 
                 # for column in range(columns):
                 #     item = table.item(row, column)
@@ -90,7 +87,7 @@ class Controller:
                 #         table.setItem(row, column, QtWidgets.QTableWidgetItem())
                 #         table.item(row, column).setBackground(QtGui.QColor(*Colors.white))
 
-        self.window.stackedWidget.setCurrentWidget(self.window.request)
+        # self.window.stackedWidget.setCurrentWidget(self.window.request)
 
     def blank_cells_to_red_cells(self, row, column, item, table):
         # if no item, create an item
@@ -126,7 +123,7 @@ class Controller:
         return result_items
 
     def handle_tables(self, *tables, handler):
-        table_result = {}
+        table_result = {table: {} for table in tables}
         for table in tables:
             rows = table.rowCount()
             columns = table.columnCount()
@@ -169,41 +166,19 @@ class Controller:
         name_value = {column_names[column]: item.text()}
         return row, name_value
 
-    # @staticmethod
-    # def convert_cell2model_data(cell_data):
-    #     model_data = {key: dict() for key in set(cell[0] for cell in cell_data)}
-    #     for cell in cell_data:
-    #         ep_index = cell[0]
-    #         ep_properties = cell[1]
-    #         ep_data = cell[2]
-    #         column_names = ['uri', 'header_names', 'body_names']
-    #
-    #         ep_named_properties = column_names[ep_properties]
-    #
-    #         model_data[ep_index][ep_named_properties] = ep_data
-    #     return model_data
 
     def button_apply_uri_action(self):
         view_table_data = self.handle_tables(self.window.tableWidget_uri, handler=self.read_cell)
 
-
         for table, elements in view_table_data.items():
-            table_row_number = range(table.columnCount())
             self.clear_tables_content(table)
+            self.models['eps'].flush()
 
-            for row in table_row_number:
+            # Iterate through data recieved from the table
+            for id_, element in sorted(elements.items()):
+                self.models['eps'].add(Endpoints.item(**element))
 
-                if row in elements.keys():
-                    for id_, element in sorted(elements.items()):
-
-                        if id_ in range(len(self.models['eps'])):
-                            self.models['eps'].update(id_, element)
-                        else:
-                            self.models['eps'].add(Endpoints.item(**element))
-                else:
-                    self.models['eps'].delete(id_)
-
-        # self.window.stackedWidget.setCurrentWidget(self.window.request)
+        self.window.stackedWidget.setCurrentWidget(self.window.request)
 
     def edit_uri_action(self, window):
         self.fill_tables_from_model()
@@ -213,7 +188,7 @@ class Controller:
         # request window buttons
         window.button_edit_request.clicked.connect(self.button_edit_request_action)
         window.button_add_request.clicked.connect(self.button_add_request_action)
-        window.button_delete_request.clicked.connect(lambda *x: self.del_row(window.tableWidget_request, self.requests))
+        window.button_delete_request.clicked.connect(lambda *x: self.del_row(window.tableWidget_request))
 
         # main menu buttons
         window.actionEdit_URI.triggered.connect(lambda *x: self.edit_uri_action(self.window))
