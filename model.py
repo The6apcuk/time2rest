@@ -87,6 +87,13 @@ class Endpoint(ItemModel):
         self.header_names = header_names
         self.body_names = body_names
 
+    def __str__(self):
+        return self.endpoint
+
+    def from_default(self, val):
+        return {key: val[:] for key in self.get_attributes()}
+
+
 class Request(ItemModel):
     index_to_key_map = {0: 'uri', 1: 'header_names', 2: 'body_names'}
 
@@ -104,6 +111,23 @@ class Endpoints(CollectionModel):
     def __init__(self, dtb):
         CollectionModel.__init__(self, dtb)
 
+    def default_eps(self, cur_data):
+        cur_element = None
+
+        for element in self.collection:
+            if cur_data in element:
+                cur_element = element
+                break
+
+        header_default = []
+        for header in cur_element.header_names.split(";"):
+            header_default.append([header, ''])
+
+        body_default = []
+        for body in cur_element.body_names.split(";"):
+            body_default.append([body, ''])
+
+        return header_default, body_default
 
 class Requests(CollectionModel):
     name = 'Requests'

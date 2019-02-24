@@ -42,11 +42,11 @@ class Controller:
 
         # model.delete(cur_row)
 
-    def fill_tables_from_model(self):
-        model_data = self.models['eps']
-        for row, ep in enumerate(model_data):
-            self.add_row(table=self.window.tableWidget_uri, row_pos=row)
-            self.fill_table_rows(self.window.tableWidget_uri, row, ep)
+    def fill_tables_from_model(self, *tables, model_data):
+        for table in tables:
+            for row, ep in enumerate(model_data):
+                self.add_row(table, row_pos=row)
+                self.fill_table_rows(table, row, ep)
 
     def fill_table_rows(self, table, row, data):
         for column, element in enumerate(data):
@@ -70,6 +70,13 @@ class Controller:
 
     def button_add_request_action(self, *x):
         # self.requests
+        self.window.comboBox_config.clear()# MOVE TO THE APPLY BUTTON
+        self.window.comboBox_config.addItems(str(ep) for ep in self.models['eps'])
+        self.window.comboBox_config.setCurrentIndex(0)
+        header_val, body_val = self.models['eps'].default_eps(self.window.comboBox_config.currentText())
+        self.fill_tables_from_model(self.window.tableWidget_header_config, model_data=header_val)
+        self.fill_tables_from_model(self.window.tableWidget_body_config, model_data=body_val)
+
         self.window.stackedWidget.setCurrentWidget(self.window.config)
 
     def clear_tables_content(self, *tables):
@@ -122,7 +129,7 @@ class Controller:
                         result_items.append(res)
         return result_items
 
-    def handle_tables(self, *tables, handler):
+    def handle_tables(self, tables, handler):
         table_result = {table: {} for table in tables}
         for table in tables:
             rows = table.rowCount()
@@ -133,13 +140,13 @@ class Controller:
         return table_result
 
     def button_apply_config_action(self, *x):
-        result = self.handle_tables(*self.config_tables, handler=self.blank_cells_to_red_cells)
+        result = self.handle_tables(self.config_tables, handler=self.blank_cells_to_red_cells)
 
-        if self.config_tables in result:
-            final_result = []
-            for table in self.config_tables:
-                final_result += result[table]
-            result = final_result
+        # if self.config_tables in result.keys():
+        final_result = []
+        for table in self.config_tables:
+            final_result += result[table]
+        result = final_result
 
         # self.add_row(self.window.tableWidget_request, self.requests)
         if not result:
@@ -166,23 +173,24 @@ class Controller:
         name_value = {column_names[column]: item.text()}
         return row, name_value
 
-
-    def button_apply_uri_action(self):
-        view_table_data = self.handle_tables(self.window.tableWidget_uri, handler=self.read_cell)
+    def button_apply_action(self, *tables, model, flush=True):
+        view_table_data = self.handle_tables(tables, handler=self.read_cell)
 
         for table, elements in view_table_data.items():
             self.clear_tables_content(table)
-            self.models['eps'].flush()
+            if flush:
+                model.flush()
 
-            # Iterate through data recieved from the table
-            for id_, element in sorted(elements.items()):
-                self.models['eps'].add(Endpoints.item(**element))
+                # Iterate through data recieved from the table
+                for id_, element in sorted(elements.items()):
+                    model.add(Endpoints.item(**element))
 
         self.window.stackedWidget.setCurrentWidget(self.window.request)
 
     def edit_uri_action(self, window):
-        self.fill_tables_from_model()
-        window.stackedWidget.setCurrentWidget(window.uri)
+        if window.stackedWidget.currentWidget() != window.uri:
+            self.fill_tables_from_model(self.window.tableWidget_uri, model_data=self.models['eps'])
+            window.stackedWidget.setCurrentWidget(window.uri)
 
     def configure_callbacks(self, window):
         # request window buttons
@@ -195,17 +203,19 @@ class Controller:
 
         # config window buttons
         window.button_body_add_config.clicked.connect(
-            lambda *x: self.add_row(window.tableWidget_body_config, 'requests'))
+            lambda *x: self.add_row(window.tableWidget_body_config))
         window.button_body_delete_config.clicked.connect(
-            lambda *x: self.del_row(window.tableWidget_body_config, 'requests'))
+            lambda *x: self.del_row(window.tableWidget_body_config))
 
         window.button_header_add_config.clicked.connect(
-            lambda *x: self.add_row(window.tableWidget_header_config, 'requests'))
+            lambda *x: self.add_row(window.tableWidget_header_config))
         window.button_header_delete_config.clicked.connect(
-            lambda *x: self.del_row(window.tableWidget_header_config, 'requests'))
+            lambda *x: self.del_row(window.tableWidget_header_config))
 
-        window.button_apply_config.clicked.connect(self.button_apply_config_action)
-        window.button_cancel_config.clicked.connect(lambda *x: self.clear_tables_content(*self.config_tables))
+        window.button_apply_config.clicked.connect(lambda *x: self.button_apply_config_action(*x))
+        window.button_cancel_config.clicked.connect(lambda *x: self.button_apply_action(*self.config_tables,
+                                                                                        model=None,
+                                                                                        flush=False))
 
         window.tableWidget_header_config.itemChanged.connect(
             lambda item: self.table_update(item))  # window.tableWidget_header_config
@@ -215,7 +225,8 @@ class Controller:
         # uri window
         window.button_add_uri.clicked.connect(lambda *x: self.add_row(window.tableWidget_uri))
         window.button_delete_uri.clicked.connect(lambda *x: self.del_row(window.tableWidget_uri))
-        window.button_apply_uri.clicked.connect(self.button_apply_uri_action)
+        window.button_apply_uri.clicked.connect(lambda *x: self.button_apply_action(self.window.tableWidget_uri,
+                                                                                    model=self.models['eps']))
 
         # window.tableWidget_uri.clearContents()
         # window.tableWidget_uri.itemChanged.connect(lambda item: self.table_update(item, self.eps))
