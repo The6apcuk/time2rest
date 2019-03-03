@@ -9,6 +9,11 @@ class Colors:
     red = (255, 0, 0)
     white = (255, 255, 255)
 
+class DictWithAttr(dict):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.result = True
+
 
 class Controller:
     def __init__(self, requests, eps):
@@ -48,17 +53,13 @@ class Controller:
                 self.add_row(table, row_pos=row)
                 self.fill_table_rows(table, row, ep)
 
-    def fill_table_rows(self, table, row, data):
+    @staticmethod
+    def fill_table_rows(table, row, data):
         for column, element in enumerate(data):
-            # cell_data = getattr(data, element)
             table.setItem(row, column, QtWidgets.QTableWidgetItem(element))
-
-            # print(element)
-            # table.
 
     def button_edit_request_action(self, *x):
         # add filling of the config table
-        # self.requests
         row = self.window.tableWidget_request.currentRow()
         column = self.window.tableWidget_request.currentColumn()
 
@@ -80,82 +81,76 @@ class Controller:
         self.fill_tables_from_model(self.window.tableWidget_body_config, model_data=body_val)
         self.window.stackedWidget.setCurrentWidget(self.window.config)
 
-    def clear_tables_content(self, *tables):
+    @staticmethod
+    def clear_tables_content(*tables):
         for table in tables:
-            # table.clearContents()
-            # rows = table.rowCount()
-            # columns = table.columnCount()
             table.setRowCount(0)
-            # for row in range(rows):
-            #     table.removeRow(row)
-
-                # for column in range(columns):
-                #     item = table.item(row, column)
-                #     if item:
-                #         table.setItem(row, column, QtWidgets.QTableWidgetItem())
-                #         table.item(row, column).setBackground(QtGui.QColor(*Colors.white))
-
-        # self.window.stackedWidget.setCurrentWidget(self.window.request)
 
     def blank_cells_to_red_cells(self, row, column, item, table):
+        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ','_')
         # if no item, create an item
         if not item:
             item = QtWidgets.QTableWidgetItem()
             table.setItem(row, column, item)
 
+        name_value = DictWithAttr({column_name: item.text()})
+
         # if the cell is blank or is not read, fill with red
         if not item.text():
             table.item(row, column).setBackground(QtGui.QColor(*Colors.red))
-            return row, column, item.text()
+            name_value.result = False
+        return row, name_value
+
+    @staticmethod
+    def read_cells(row, column, item, table):
+        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ','_')
+        # if no item, create an item
+        if not item:
+            item = QtWidgets.QTableWidgetItem()
+            table.setItem(row, column, item)
+        name_value = {column_name: item.text()}
+        return row, name_value
 
     def make_model_data(self, data, result_items):
-        if isinstance(result_items, list):
-            result_items = {}
+        # if isinstance(result_items, list):
+        #     result_items = {}
         if data[0] in result_items.keys():
             result_items[data[0]].update(data[1])
         else:
             result_items[data[0]] = data[1]
+        if hasattr(data[1], 'result') and not data[1].result:
+            result_items.result = data[1].result
         return result_items
 
     def check_cells(self, table, columns, rows, handler):
-        result_items = []
+        result_items = DictWithAttr()
         for column in range(columns):
             for row in range(rows):
                 item = table.item(row, column)
                 res = handler(row, column, item, table)
                 if res:
-                    if len(res) == 2:
-                        result_items = self.make_model_data(res, result_items)
-                    elif res:
-                        result_items.append(res)
+                    result_items = self.make_model_data(res, result_items)
         return result_items
 
     def handle_tables(self, tables, handler):
-        table_result = {table: {} for table in tables}
+        table_result = DictWithAttr({table: {} for table in tables})
         for table in tables:
             rows = table.rowCount()
             columns = table.columnCount()
             action_result = self.check_cells(table, columns, rows, handler)
             if action_result:
                 table_result[table] = action_result
+            if hasattr(action_result, 'result'):
+                table_result.result = action_result.result
         return table_result
 
     def button_apply_config_action(self, *x):
         result = self.handle_tables(self.config_tables, handler=self.blank_cells_to_red_cells)
 
-        # if self.config_tables in result.keys():
-        final_result = []
-        for table in self.config_tables:
-            final_result += result[table]
-        result = final_result
-
-        # self.add_row(self.window.tableWidget_request, self.requests)
-        if not result:
+        if result.result:
             self.clear_tables_content(*self.config_tables)
             self.window.stackedWidget.setCurrentWidget(self.window.request)
-
-            self.window.comboBox_config.clear()# MOVE TO THE APPLY BUTTON
-
+            self.window.comboBox_config.clear()
 
     def table_update(self, item):
         # column = item.column()
@@ -166,23 +161,12 @@ class Controller:
         if hasattr(item, 'text') and item.text() and item.background().color().red():
             item.setBackground(QtGui.QColor(*Colors.white))
 
-    def read_cell(self, row, column, item, table):
-        # item_type = table.objectName()[len('tableWidget_'):]
-        # item_model = self.table_names_to_model_mapping[item_type]
-        # column_names = [column_name for num, column_name in sorted(item_model.item.index_to_key_map.items())]
-        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ','_')
-        if not item:
-            item = QtWidgets.QTableWidgetItem()
-            table.setItem(row, column, item)
-        name_value = {column_name: item.text()}
-        return row, name_value
-
-    def button_apply_action(self, *tables, model, flush=True):
-        view_table_data = self.handle_tables(tables, handler=self.read_cell)
+    def button_apply_action(self, *tables, model):
+        view_table_data = self.handle_tables(tables, handler=self.read_cells)
 
         for table, elements in view_table_data.items():
             self.clear_tables_content(table)
-            if flush:
+            if model:
                 model.flush()
 
                 # Iterate through data recieved from the table
@@ -199,13 +183,11 @@ class Controller:
     def combobox_update(self, index_):
         self.clear_tables_content(*self.config_tables)
         if index_ != -1:
-            # combobox fill
             self.fill_config_tables()
 
     def button_cancel_config_action(self, *x):
-        self.button_apply_action(*self.config_tables, model=None, flush=False)
-        self.window.comboBox_config.clear()# MOVE TO THE APPLY BUTTON
-
+        self.button_apply_action(*self.config_tables, model=None)
+        self.window.comboBox_config.clear()
 
     def configure_callbacks(self, window):
         # request window buttons
@@ -230,9 +212,8 @@ class Controller:
         window.button_apply_config.clicked.connect(lambda *x: self.button_apply_config_action(*x))
         window.button_cancel_config.clicked.connect(lambda *x: self.button_cancel_config_action(*x))
 
-
-        window.tableWidget_header_config.itemChanged.connect(lambda item: self.table_update(item))  # window.tableWidget_header_config
-        window.tableWidget_body_config.itemChanged.connect(lambda item: self.table_update(item))# window.tableWidget_body_config
+        window.tableWidget_header_config.itemChanged.connect(lambda item: self.table_update(item))
+        window.tableWidget_body_config.itemChanged.connect(lambda item: self.table_update(item))
         window.comboBox_config.currentIndexChanged.connect(lambda index_: self.combobox_update(index_))
 
         # uri window
