@@ -82,8 +82,8 @@ class ItemModel:
 class Endpoint(ItemModel):
     index_to_key_map = {0: 'endpoint', 1: 'header_names', 2: 'body_names'}
 
-    def __init__(self, endpoint, header_names, body_names):
-        self.endpoint = endpoint
+    def __init__(self, uri, header_names, body_names):
+        self.endpoint = uri
         self.header_names = header_names
         self.body_names = body_names
 

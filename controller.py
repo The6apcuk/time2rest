@@ -70,13 +70,14 @@ class Controller:
 
     def button_add_request_action(self, *x):
         # self.requests
-        self.window.comboBox_config.clear()# MOVE TO THE APPLY BUTTON
         self.window.comboBox_config.addItems(str(ep) for ep in self.models['eps'])
         self.window.comboBox_config.setCurrentIndex(0)
+        # self.fill_config_tables()
+
+    def fill_config_tables(self):
         header_val, body_val = self.models['eps'].default_eps(self.window.comboBox_config.currentText())
         self.fill_tables_from_model(self.window.tableWidget_header_config, model_data=header_val)
         self.fill_tables_from_model(self.window.tableWidget_body_config, model_data=body_val)
-
         self.window.stackedWidget.setCurrentWidget(self.window.config)
 
     def clear_tables_content(self, *tables):
@@ -153,6 +154,9 @@ class Controller:
             self.clear_tables_content(*self.config_tables)
             self.window.stackedWidget.setCurrentWidget(self.window.request)
 
+            self.window.comboBox_config.clear()# MOVE TO THE APPLY BUTTON
+
+
     def table_update(self, item):
         # column = item.column()
         # row = item.row()
@@ -163,14 +167,14 @@ class Controller:
             item.setBackground(QtGui.QColor(*Colors.white))
 
     def read_cell(self, row, column, item, table):
-        item_type = table.objectName()[len('tableWidget_'):]
-        item_model = self.table_names_to_model_mapping[item_type]
-        column_names = [column_name for num, column_name in sorted(item_model.item.index_to_key_map.items())]
-
+        # item_type = table.objectName()[len('tableWidget_'):]
+        # item_model = self.table_names_to_model_mapping[item_type]
+        # column_names = [column_name for num, column_name in sorted(item_model.item.index_to_key_map.items())]
+        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ','_')
         if not item:
             item = QtWidgets.QTableWidgetItem()
             table.setItem(row, column, item)
-        name_value = {column_names[column]: item.text()}
+        name_value = {column_name: item.text()}
         return row, name_value
 
     def button_apply_action(self, *tables, model, flush=True):
@@ -191,6 +195,17 @@ class Controller:
         if window.stackedWidget.currentWidget() != window.uri:
             self.fill_tables_from_model(self.window.tableWidget_uri, model_data=self.models['eps'])
             window.stackedWidget.setCurrentWidget(window.uri)
+
+    def combobox_update(self, index_):
+        self.clear_tables_content(*self.config_tables)
+        if index_ != -1:
+            # combobox fill
+            self.fill_config_tables()
+
+    def button_cancel_config_action(self, *x):
+        self.button_apply_action(*self.config_tables, model=None, flush=False)
+        self.window.comboBox_config.clear()# MOVE TO THE APPLY BUTTON
+
 
     def configure_callbacks(self, window):
         # request window buttons
@@ -213,14 +228,12 @@ class Controller:
             lambda *x: self.del_row(window.tableWidget_header_config))
 
         window.button_apply_config.clicked.connect(lambda *x: self.button_apply_config_action(*x))
-        window.button_cancel_config.clicked.connect(lambda *x: self.button_apply_action(*self.config_tables,
-                                                                                        model=None,
-                                                                                        flush=False))
+        window.button_cancel_config.clicked.connect(lambda *x: self.button_cancel_config_action(*x))
 
-        window.tableWidget_header_config.itemChanged.connect(
-            lambda item: self.table_update(item))  # window.tableWidget_header_config
-        window.tableWidget_body_config.itemChanged.connect(
-            lambda item: self.table_update(item))  # window.tableWidget_body_config
+
+        window.tableWidget_header_config.itemChanged.connect(lambda item: self.table_update(item))  # window.tableWidget_header_config
+        window.tableWidget_body_config.itemChanged.connect(lambda item: self.table_update(item))# window.tableWidget_body_config
+        window.comboBox_config.currentIndexChanged.connect(lambda index_: self.combobox_update(index_))
 
         # uri window
         window.button_add_uri.clicked.connect(lambda *x: self.add_row(window.tableWidget_uri))

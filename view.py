@@ -246,7 +246,7 @@ class Ui_MainWindow(object):
         item = self.tableWidget_uri.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Header names"))
         item = self.tableWidget_uri.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "Bodies names"))
+        item.setText(_translate("MainWindow", "Body names"))
         self.button_add_uri.setText(_translate("MainWindow", "Add"))
         self.button_delete_uri.setText(_translate("MainWindow", "Delete"))
         self.button_apply_uri.setText(_translate("MainWindow", "Apply"))
