@@ -76,7 +76,8 @@ class ItemModel:
 
     def get_attributes(self):
         """Gets attributes, assuming that attributes are strings"""
-        return {attr_name: attr_value for attr_name, attr_value in self.__dict__.items() if type(attr_value) in (str, int)}
+        return {attr_name: attr_value for attr_name, attr_value in self.__dict__.items()
+                                                if type(attr_value) in (str, int, dict)}
 
 
 class Endpoint(ItemModel):
@@ -95,12 +96,16 @@ class Endpoint(ItemModel):
 
 
 class Request(ItemModel):
-    index_to_key_map = {0: 'uri', 1: 'header_names', 2: 'body_names'}
+    # index_to_key_map = {0: 'uri', 1: 'header_names', 2: 'body_names'}
 
-    def __init__(self, name, headers, bodies):
-        self.name = name
-        self.headers = headers[self.name]
-        self.bodies = bodies[self.name]
+    def __init__(self, **kwargs):
+
+        for key, value in kwargs.items():
+            self.__dict__[key] = value
+
+        # self.name = name
+        # self.headers = headers[self.name]
+        # self.bodies = bodies[self.name]
 
 
 
@@ -118,8 +123,11 @@ class Endpoints(CollectionModel):
             if cur_data in element:
                 cur_element = element
                 break
+        else:
+            return None, None
 
         header_default = []
+
         for header in cur_element.header_names.split(";"):
             header_default.append([header, ''])
 
@@ -130,6 +138,7 @@ class Endpoints(CollectionModel):
         return header_default, body_default
 
 class Requests(CollectionModel):
+    item = Request
     name = 'Requests'
     def __init__(self, dtb):
         CollectionModel.__init__(self, dtb)

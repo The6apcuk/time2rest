@@ -9,6 +9,7 @@ class Colors:
     red = (255, 0, 0)
     white = (255, 255, 255)
 
+
 class DictWithAttr(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -56,6 +57,12 @@ class Controller:
     @staticmethod
     def fill_table_rows(table, row, data):
         for column, element in enumerate(data):
+            if isinstance(element, dict):
+                fin_element = ''
+                for key, value in element.items():
+                    fin_element += '{}:{};'.format(key,value)
+                element = fin_element[:-1]
+
             table.setItem(row, column, QtWidgets.QTableWidgetItem(element))
 
     def button_edit_request_action(self, *x):
@@ -73,6 +80,8 @@ class Controller:
         # self.requests
         self.window.comboBox_config.addItems(str(ep) for ep in self.models['eps'])
         self.window.comboBox_config.setCurrentIndex(0)
+        if self.window.stackedWidget.currentWidget().objectName() == 'request':
+            self.window.stackedWidget.setCurrentWidget(self.window.config)
         # self.fill_config_tables()
 
     def fill_config_tables(self):
@@ -87,7 +96,7 @@ class Controller:
             table.setRowCount(0)
 
     def blank_cells_to_red_cells(self, row, column, item, table):
-        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ','_')
+        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ', '_')
         # if no item, create an item
         if not item:
             item = QtWidgets.QTableWidgetItem()
@@ -103,7 +112,7 @@ class Controller:
 
     @staticmethod
     def read_cells(row, column, item, table):
-        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ','_')
+        column_name = table.horizontalHeaderItem(column).text().lower().replace(' ', '_')
         # if no item, create an item
         if not item:
             item = QtWidgets.QTableWidgetItem()
@@ -144,13 +153,37 @@ class Controller:
                 table_result.result = action_result.result
         return table_result
 
-    def button_apply_config_action(self, *x):
-        result = self.handle_tables(self.config_tables, handler=self.blank_cells_to_red_cells)
+    def button_apply_config_action(self, *x, model):
+        config_table_data = self.handle_tables(self.config_tables, handler=self.blank_cells_to_red_cells)
 
-        if result.result:
-            self.clear_tables_content(*self.config_tables)
+        if config_table_data.result:
+
+            if model:
+                model.flush()
+
+            head_body = {}
+            for table, elements in config_table_data.items():
+                self.clear_tables_content(table)
+
+                # Iterate through data received from the table
+                name_collecer = {}
+                for id_, element in sorted(elements.items()):
+                    name = 'body' if 'body_name' in element.keys() else 'header'
+                    name_collecer.update({element[name + '_name']: element[name + "_value"]})
+
+                head_body[name] = name_collecer.copy()
+
+
+            model.add(Requests.item(**head_body))
+
             self.window.stackedWidget.setCurrentWidget(self.window.request)
+            self.fill_tables_from_model(self.window.tableWidget_request, model_data=self.models['requests'])
             self.window.comboBox_config.clear()
+
+        # if result.result:
+        # self.clear_tables_content(*self.config_tables)
+        # self.window.stackedWidget.setCurrentWidget(self.window.request)
+        # self.window.comboBox_config.clear()
 
     def table_update(self, item):
         # column = item.column()
@@ -164,8 +197,11 @@ class Controller:
     def button_apply_action(self, *tables, model):
         view_table_data = self.handle_tables(tables, handler=self.read_cells)
 
+
         for table, elements in view_table_data.items():
             self.clear_tables_content(table)
+
+            # in case of cancellation the model is empty, do not proceed with saving data into model
             if model:
                 model.flush()
 
@@ -209,7 +245,9 @@ class Controller:
         window.button_header_delete_config.clicked.connect(
             lambda *x: self.del_row(window.tableWidget_header_config))
 
-        window.button_apply_config.clicked.connect(lambda *x: self.button_apply_config_action(*x))
+        window.button_apply_config.clicked.connect(lambda *x: self.button_apply_config_action(*x,
+                                                                                              model=self.models[
+                                                                                                  'requests']))
         window.button_cancel_config.clicked.connect(lambda *x: self.button_cancel_config_action(*x))
 
         window.tableWidget_header_config.itemChanged.connect(lambda item: self.table_update(item))

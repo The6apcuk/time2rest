@@ -158,6 +158,7 @@ class Ui_MainWindow(object):
         self.tableWidget_uri.horizontalHeader().setStretchLastSection(True)
         self.tableWidget_uri.verticalHeader().setVisible(False)
         self.tableWidget_uri.verticalHeader().setStretchLastSection(False)
+        # self.tableWidget_uri.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.gridLayout_4.addWidget(self.tableWidget_uri, 0, 0, 1, 3)
         self.button_add_uri = QtWidgets.QPushButton(self.uri)
         self.button_add_uri.setObjectName("button_add_uri")
